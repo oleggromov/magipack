@@ -1,11 +1,20 @@
-export default class BitwiseOptions {
-  test: boolean;
+interface BitwiseOption {
+  size: number;
+  name: string;
+}
 
-  constructor(test = false) {
-    this.test = test;
+export default class BitwiseOptions {
+  supportedOptions: string[];
+
+  constructor(options: BitwiseOption[]) {
+    this.supportedOptions = [];
   }
 
-  isTest(): boolean {
-    return this.test;
+  init(options: number) {
+
+  }
+
+  has(name?: string) {
+    return true;
   }
 }
