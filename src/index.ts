@@ -8,8 +8,8 @@ interface BitwiseOption {
    */
   size?: number;
   /**
-   * Bool is default for single-bit,
-   * Int is default for multi-bit options
+   * bool is default for single-bit,
+   * int is default for multi-bit options
    */
   type?: BitwiseOptionType;
 }
@@ -18,8 +18,6 @@ type BitwiseOptionType = 'bool' | 'int';
 type BitwiseOptionValue = boolean | number;
 
 const MAX_BIT = 31;
-
-// ToDo: support non-boolean values
 
 export default class BitwiseOptions {
   supported: Required<BitwiseOption>[];
