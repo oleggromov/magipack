@@ -16,7 +16,7 @@ or
 `yarn install bitwise-options`
 
 ## Usage
-```(js)
+```javascript
 import BitwiseOptions from 'bitwise-options';
 
 // Configure available options
