@@ -128,8 +128,8 @@ describe('BitwiseOptions', () => {
     it('reads single-bit as a number', () => {
       const bo = new BitwiseOptions([
         {name: 'first', type: 'bool'},
-        {name: 'second', type: 'int'},
-        {name: 'third', type: 'int'},
+        {name: 'second', type: 'uint'},
+        {name: 'third', type: 'uint'},
       ]);
       bo.read(5);
       expect(bo.get('first')).toBe(true);
@@ -142,6 +142,10 @@ describe('BitwiseOptions', () => {
       bo.set('second_bool', true);
       bo.set('third_5bit', 31);
       expect(bo.toNumber()).toBe(252);
+    });
+
+    it('throws on signed ints', () => {
+      expect(() => bo.set('third_5bit', -3)).toThrowError(ERROR_REGEX);
     });
 
     it('throws if option value is incorrect', () => {

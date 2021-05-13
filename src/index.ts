@@ -9,15 +9,19 @@ interface BitwiseOption {
   size?: number;
   /**
    * bool is default for single-bit,
-   * int is default for multi-bit options
+   * uint is default for multi-bit options
    */
   type?: BitwiseOptionType;
 }
 
-type BitwiseOptionType = 'bool' | 'int';
+type BitwiseOptionType = 'bool' | 'uint';
 type BitwiseOptionValue = boolean | number;
 
 const MAX_BIT = 31;
+
+// ToDo:
+// - support signed integers
+// - longer than 32 bit numbers
 
 export default class BitwiseOptions {
   supported: Required<BitwiseOption>[];
@@ -111,15 +115,18 @@ export default class BitwiseOptions {
     const type = this.options[name].options.type;
 
     if ((type === 'bool' && typeof value === 'number')
-      || (type === 'int' && typeof value === 'boolean')) {
+      || (type === 'uint' && typeof value === 'boolean')) {
         throw error(`unsupported value of type "${typeof value}" for option "${name}" of type "${type}"`);
       }
 
-    if (type === 'int') {
+    if (type === 'uint') {
       const bits = this.options[name].options.size;
       const maxVaue = Math.pow(2, bits) - 1;
       if (value > maxVaue) {
         throw error(`number ${value} is too big for a ${bits}-bit integer`);
+      }
+      if (value < 0) {
+        throw error(`negative values are unsupported`);
       }
     }
   }
@@ -139,9 +146,9 @@ export default class BitwiseOptions {
 
     if (size > 1) {
       if (option?.type === 'bool') {
-        throw error(`unsupported bool type for option "${option.name} of size ${size}`);
+        throw error(`unsupported bool type for option "${option.name}" of size ${size}`);
       }
-      return 'int';
+      return 'uint';
     }
 
     return option.type || 'bool';
