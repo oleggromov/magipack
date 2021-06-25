@@ -1,8 +1,8 @@
 {
   "name": "bitwise-options",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Value packing library",
-  "main": "index.js",
+  "main": "./dist/index.js",
   "scripts": {
     "build": "tsc --build",
     "test": "jest"
@@ -15,7 +15,7 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
-  "types": "index.d.ts",
+  "types": "./dist/index.d.ts",
   "devDependencies": {
     "@types/jest": "^26.0.23",
     "@types/node": "^15.0.3",
