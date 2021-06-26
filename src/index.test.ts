@@ -16,7 +16,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('reads single bit options', () => {
-      bo.read(13);
+      bo.read(BigInt(13));
       expect(bo.get('first')).toBe(true);
       expect(bo.get('second')).toBe(false);
       expect(bo.get('third')).toBe(true);
@@ -28,7 +28,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('sets default values on 0 input', () => {
-      bo.read(0);
+      bo.read(BigInt(0));
       expect(bo.get('first')).toBe(false);
       expect(bo.get('second')).toBe(false);
       expect(bo.get('third')).toBe(false);
@@ -36,7 +36,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('ignores unknown options in input', () => {
-      bo.read(16);
+      bo.read(BigInt(16));
       expect(bo.get('first')).toBe(false);
       expect(bo.get('second')).toBe(false);
       expect(bo.get('third')).toBe(false);
@@ -47,61 +47,13 @@ describe('BitwiseOptions', () => {
       bo.set('first', true);
       bo.set('third', true);
       bo.set('fourth', true);
-      expect(bo.toNumber()).toBe(13);
+      expect(bo.toNumber()).toBe(BigInt(13));
     });
 
     it('throws on getting/setting unknown option', () => {
-      bo.read(3);
+      bo.read(BigInt(3));
       expect(() => bo.get('fifth')).toThrowError(ERROR_REGEX);
       expect(() => bo.set('fifth', true)).toThrowError(ERROR_REGEX);
-    });
-
-    it('throws on too many options or large input', () => {
-      const MAX_VALUE = Math.pow(2, 32) - 1;
-      const OPTIONS_31 = [
-        {name: '1'},
-        {name: '2'},
-        {name: '3'},
-        {name: '4'},
-        {name: '5'},
-        {name: '6'},
-        {name: '7'},
-        {name: '8'},
-        {name: '9'},
-        {name: '10'},
-        {name: '11'},
-        {name: '12'},
-        {name: '13'},
-        {name: '14'},
-        {name: '15'},
-        {name: '16'},
-        {name: '17'},
-        {name: '18'},
-        {name: '19'},
-        {name: '20'},
-        {name: '21'},
-        {name: '22'},
-        {name: '23'},
-        {name: '24'},
-        {name: '25'},
-        {name: '26'},
-        {name: '27'},
-        {name: '28'},
-        {name: '29'},
-        {name: '30'},
-        {name: '31'},
-      ];
-
-      expect(() => new BitwiseOptions(OPTIONS_31)).not.toThrowError(ERROR_REGEX);
-      expect(() => new BitwiseOptions(OPTIONS_31.concat({name: '32'}))).toThrowError(ERROR_REGEX);
-
-      const bo = new BitwiseOptions(OPTIONS_31);
-
-      expect(() => bo.read(MAX_VALUE + 1)).toThrowError(ERROR_REGEX);
-
-      bo.read(MAX_VALUE);
-      expect(bo.get('31')).toBe(true);
-      expect(bo.get('1')).toBe(true);
     });
   });
 
@@ -118,11 +70,11 @@ describe('BitwiseOptions', () => {
     });
 
     it('reads multi-bit options', () => {
-      bo.read(2542); // 1001,11101,1,10 = 9,29,1,2
-      expect(bo.get('first_2bit')).toBe(2);
+      bo.read(BigInt(2542)); // 1001,11101,1,10 = 9,29,1,2
+      expect(bo.get('first_2bit')).toBe(BigInt(2));
       expect(bo.get('second_bool')).toBe(true);
-      expect(bo.get('third_5bit')).toBe(29);
-      expect(bo.get('fourth_4bit')).toBe(9);
+      expect(bo.get('third_5bit')).toBe(BigInt(29));
+      expect(bo.get('fourth_4bit')).toBe(BigInt(9));
     });
 
     it('reads single-bit as a number', () => {
@@ -131,60 +83,88 @@ describe('BitwiseOptions', () => {
         {name: 'second', type: 'uint'},
         {name: 'third', type: 'uint'},
       ]);
-      bo.read(5);
+      bo.read(BigInt(5));
       expect(bo.get('first')).toBe(true);
-      expect(bo.get('second')).toBe(0);
-      expect(bo.get('third')).toBe(1);
+      expect(bo.get('second')).toBe(BigInt(0));
+      expect(bo.get('third')).toBe(BigInt(1));
     });
 
     it('sets multi-bit options correctly', () => {
-      bo.set('first_2bit', 0);
+      bo.set('first_2bit', BigInt(0));
       bo.set('second_bool', true);
-      bo.set('third_5bit', 31);
-      expect(bo.toNumber()).toBe(252);
+      bo.set('third_5bit', BigInt(31));
+      expect(bo.toNumber()).toBe(BigInt(252));
     });
 
     it('throws on signed ints', () => {
-      expect(() => bo.set('third_5bit', -3)).toThrowError(ERROR_REGEX);
+      expect(() => bo.set('third_5bit', BigInt(-3))).toThrowError(ERROR_REGEX);
     });
 
     it('throws if option value is incorrect', () => {
-      expect(() => bo.set('fourth_4bit', 16)).toThrowError(ERROR_REGEX);
-      expect(() => bo.set('second_bool', 1)).toThrowError(ERROR_REGEX);
+      expect(() => bo.set('fourth_4bit', BigInt(16))).toThrowError(ERROR_REGEX);
+      expect(() => bo.set('second_bool', BigInt(1))).toThrowError(ERROR_REGEX);
     });
 
     it('ignores unknown options in input', () => {
-      bo.read(30851); // 111,1000,10000,0,11
-      expect(bo.get('first_2bit')).toBe(3);
+      bo.read(BigInt(30851)); // 111,1000,10000,0,11
+      expect(bo.get('first_2bit')).toBe(BigInt(3));
       expect(bo.get('second_bool')).toBe(false);
-      expect(bo.get('third_5bit')).toBe(16);
-      expect(bo.get('fourth_4bit')).toBe(8);
+      expect(bo.get('third_5bit')).toBe(BigInt(16));
+      expect(bo.get('fourth_4bit')).toBe(BigInt(8));
     });
 
     it('throws on getting/setting unknown option', () => {
-      bo.read(0);
-      expect(() => bo.set('no one', 0)).toThrowError(ERROR_REGEX);
-      expect(() => bo.set('hello', 0)).toThrowError(ERROR_REGEX);
+      bo.read(BigInt(0));
+      expect(() => bo.set('no one', BigInt(0))).toThrowError(ERROR_REGEX);
+      expect(() => bo.set('hello', BigInt(0))).toThrowError(ERROR_REGEX);
+    });
+  });
+
+  describe('BigInt', () => {
+    it('reads a 129-bit bigint into a 64- and 65-bit bigints', () => {
+      const bo = new BitwiseOptions([
+        {name: '64_bit', size: 64},
+        {name: '65_bit', size: 65}
+      ]);
+      bo.read(BigInt('481966290129121909553755495609654715551'));
+      expect(bo.get('64_bit')).toBe(BigInt('9943143236341736607')); // 1000100111111101001001000001011110101000111110100010010010011111
+      expect(bo.get('65_bit')).toBe(BigInt('26127444941138645284')); // 10110101010010111010101001011111010101101001001010101000100100100
     });
 
-    it('throws on too many bits or large input', () => {
-      const MAX_VALUE = Math.pow(2, 32) - 1;
-      const OPTIONS = [
-        {name: '1', size: 25},
-        {name: '2', size: 5},
-      ];
+    it('reads a 129 big int into 4 x 32 bit & 1 bit', () => {
+      const bo = new BitwiseOptions([
+        {name: 'first', size: 32},
+        {name: 'second', size: 1, type: 'uint'},
+        {name: 'third', size: 32},
+        {name: 'fourth', size: 32},
+        {name: 'fifth', size: 32},
+      ]);
+      bo.read(BigInt('481966290129121909553755495609654715551'));
+      expect(bo.get('first')).toBe(BigInt(2834965663)); // 10101000111110100010010010011111
+      expect(bo.get('second')).toBe(BigInt(1)); // 1
+      expect(bo.get('third')).toBe(BigInt(1157534219)); // 01000100111111101001001000001011
+      expect(bo.get('fourth')).toBe(BigInt(1452451986)); // 01010110100100101010100010010010
+      expect(bo.get('fifth')).toBe(BigInt(3041634911)); // 10110101010010111010101001011111
+    });
 
-      expect(() => new BitwiseOptions(OPTIONS)).not.toThrowError(ERROR_REGEX);
-      expect(() => new BitwiseOptions(OPTIONS.concat({name: '3', size: 1}))).not.toThrowError(ERROR_REGEX);
-      expect(() => new BitwiseOptions(OPTIONS.concat({name: '3', size: 2}))).toThrowError(ERROR_REGEX);
+    it('sets 5 × 25 bit int values correctly', () => {
+      const bo = new BitwiseOptions([
+        {name: 'first', size: 25},
+        {name: 'second', size: 25},
+        {name: 'third', size: 25},
+      ]);
+      bo.set('first', BigInt(11105611)); // 0101010010111010101001011
+      bo.set('second', BigInt(33367063)); // 1111111010010010000010111
+      bo.set('third', BigInt(20587679)); // 1001110100010010010011111
+      expect(bo.toNumber()).toBe(BigInt('23179666987818704008523'));
+    });
 
-      const bo = new BitwiseOptions(OPTIONS);
-
-      expect(() => bo.read(MAX_VALUE + 1)).toThrowError(ERROR_REGEX);
-
-      bo.read(MAX_VALUE);
-      expect(bo.get('1')).toBe(33554431);
-      expect(bo.get('2')).toBe(31);
+    it('returns correct bigint string', () => {
+      const bo = new BitwiseOptions([
+        {name: 'first', size: 129},
+      ]);
+      bo.read(BigInt('481966290129121909553755495609654715551'));
+      expect(bo.toString()).toBe('481966290129121909553755495609654715551');
     });
   });
 });
