@@ -1,13 +1,15 @@
 {
   "name": "bitwise-options",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "description": "Value packing library",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc --build",
     "test": "jest"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "prepublish": "tsc --build",
   "publishConfig": {
     "access": "public"
