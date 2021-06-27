@@ -15,6 +15,10 @@ or
 
 `yarn install bitwise-options`
 
+### Babel transpilation
+If you're using Babel or any other code transpilation, you may want to disable it for the lib.
+It relies on the the `**` (exponentiation) operator, which won't work with BigInt-s if transpiled to `Math.pow`.
+
 ## Usage
 ```javascript
 import BitwiseOptions from 'bitwise-options';
