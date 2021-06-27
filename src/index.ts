@@ -4,37 +4,38 @@ export interface BitwiseOption {
    */
   name: string;
   /**
-   * Default size is 1 bit, that is read as true/false
+   * Size in bits for of the option.
    */
-  size?: number;
+  size: number;
   /**
-   * bool is default for single-bit,
-   * uint is default for multi-bit options
+   * Type can be one of:
+   *  'bool' for booleans
+   *  'uint' for unsigned ints
+   *  'sint' for signed ints
    */
-  type?: BitwiseOptionType;
+  type: BitwiseOptionType;
 }
 
-export type BitwiseOptionType = 'bool' | 'uint';
+export type BitwiseOptionType = 'bool' | 'uint' | 'sint';
 export type BitwiseOptionValue = boolean | bigint;
 
 // ToDo:
-// - support signed integers
 // - support ASCII
 
+type InternalOption = {
+  value: BitwiseOptionValue | undefined;
+  options: BitwiseOption;
+};
+
 export default class BitwiseOptions {
-  supported: Required<BitwiseOption>[];
-  options: Record<string, {
-    value: BitwiseOptionValue | undefined;
-    options: Required<BitwiseOption>;
-  }> = {};
+  supported: BitwiseOption[];
+  options: Record<string, InternalOption> = {};
 
   constructor(options: BitwiseOption[]) {
     this.supported = options.map(inputOpt => {
-      const size = this._getDefaultedSize(inputOpt);
-
-      const result: Required<BitwiseOption> = {
+      const result: BitwiseOption = {
         name: inputOpt.name,
-        size,
+        size: inputOpt.size,
         type: this._getOptionType(inputOpt),
       };
 
@@ -50,12 +51,11 @@ export default class BitwiseOptions {
   read(input: bigint): void {
     let bit = BigInt(0);
     for (const option of this.supported) {
-      const type = this._getOptionType(option);
       const mask = (BigInt(2) ** BigInt(option.size) - BigInt(1)) << bit;
       const value = (input & mask) >> bit;
 
       this.options[option.name] = {
-        value: type === 'bool' ? Boolean(value) : value,
+        value: this._readOptionValue(option, value),
         options: option,
       };
 
@@ -68,7 +68,7 @@ export default class BitwiseOptions {
     let bit = BigInt(0);
 
     for (const option of this.supported) {
-      result |= BigInt(this.options[option.name].value ?? 0) << bit;
+      result |= this._writeOptionValue(this.options[option.name]) << bit;
       bit += BigInt(option.size);
     }
 
@@ -93,6 +93,52 @@ export default class BitwiseOptions {
     this.options[name].value = value;
   }
 
+  _readOptionValue(option: BitwiseOption, value: bigint): BitwiseOptionValue {
+    if (option.type === 'bool') {
+      return Boolean(value);
+    }
+    if (option.type === 'uint') {
+      return value;
+    }
+
+    return this._readSignedValue(option, value);
+  }
+
+  _readSignedValue(option: BitwiseOption, value: bigint): bigint {
+    const significantBits = BigInt(option.size - 1);
+
+    const signMask = BigInt(1) << (significantBits);
+    const valueMask = BigInt(2) ** (significantBits) - BigInt(1);
+
+    const isNegative = Boolean((value & signMask) >> significantBits);
+    const maskedValue = value & valueMask;
+
+    return isNegative ? -maskedValue : maskedValue;
+  }
+
+  _writeOptionValue(option: InternalOption): bigint {
+    const {type, size} = option.options;
+    const value = BigInt(option.value ?? 0);
+
+    if (type === 'bool' || type === 'uint') {
+      return BigInt(value);
+    }
+
+    return this._writeSignedValue(value, size);
+  }
+
+  _writeSignedValue(value: bigint, size: number): bigint {
+    const significantBits = BigInt(size - 1);
+
+    const signBit = value < 0 ? BigInt(1) : BigInt(0);
+    const absoluteValue = value < 0 ? value * BigInt(-1) : value;
+
+    const signMask = (signBit << significantBits);
+    const valueMask = BigInt(2) ** significantBits - BigInt(1);
+
+    return signMask | (absoluteValue & valueMask);
+  }
+
   _throwOnUnsupportedOption(name: string) {
     if (!this._isOptionSupported(name)) {
       throw error(`unsupported option "${name}"`);
@@ -100,21 +146,34 @@ export default class BitwiseOptions {
   }
 
   _throwOnTypeMismatch(name: string, value: BitwiseOptionValue) {
-    const type = this.options[name].options.type;
+    const {type, size} = this.options[name].options;
 
-    if ((type === 'bool' && typeof value === 'bigint')
-      || (type === 'uint' && typeof value === 'boolean')) {
-        throw error(`unsupported value of type "${typeof value}" for option "${name}" of type "${type}"`);
+    if (typeof value === 'bigint') {
+      if (type === 'bool') {
+        throw error(`cannot assign bigint value to 'bool' option '${name}'`);
       }
+    }
+
+    if (typeof value === 'boolean') {
+      if (type === 'uint' || type === 'sint') {
+        throw error(`cannot assign boolean value to '${type}' option ${name}`);
+      }
+    }
 
     if (type === 'uint') {
-      const bits = this.options[name].options.size;
-      const maxValue = BigInt(2) ** BigInt(bits) - BigInt(1);
+      const maxValue = BigInt(2) ** BigInt(size) - BigInt(1);
       if (value > maxValue) {
-        throw error(`number ${value} is too big for a ${bits}-bit integer`);
+        throw error(`number ${value} is too big for a ${size}-bit unsigned int`);
       }
       if (value < BigInt(0)) {
-        throw error(`negative values are unsupported`);
+        throw error(`for negative values use 'sint' type`);
+      }
+    }
+
+    if (type === 'sint') {
+      const maxValue = BigInt(2) ** BigInt(size - 1) - BigInt(1);
+      if (value > maxValue || value < -maxValue) {
+        throw error(`number ${value} has too many significant bits for a ${size}-bit signed integer`);
       }
     }
   }
@@ -130,20 +189,24 @@ export default class BitwiseOptions {
   }
 
   _getOptionType(option: BitwiseOption): BitwiseOptionType {
-    const size = this._getDefaultedSize(option);
+    const {name, size, type} = option;
 
-    if (size > 1) {
-      if (option?.type === 'bool') {
-        throw error(`unsupported bool type for option "${option.name}" of size ${size}`);
-      }
-      return 'uint';
+    if (!name || !size || !type) {
+      throw error('Each of (name, size, type) properties are required for options');
     }
 
-    return option.type || 'bool';
-  }
+    if (size === 1) {
+      if (option.type === 'sint') {
+        throw error(`unsupported 'sint' type option '${option.name}' for size === 1`);
+      }
+      return option.type;
+    }
 
-  _getDefaultedSize(option: BitwiseOption): number {
-    return option.size || 1;
+    if (option.type === 'bool') {
+      throw error(`unsupported 'bool' type for option '${option.name}' of size ${size}`);
+    }
+
+    return option.type;
   }
 }
 
