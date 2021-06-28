@@ -4,7 +4,8 @@ export interface BitwiseOption {
    */
   name: string;
   /**
-   * Size in bits for of the option.
+   * Size in bits for 'bool', 'uint', and 'sint'.
+   * Set to -1 for 'ascii'
    */
   size: number;
   /**
@@ -12,15 +13,17 @@ export interface BitwiseOption {
    *  'bool' for booleans
    *  'uint' for unsigned ints
    *  'sint' for signed ints
+   *  'ascii' for 127 ASCII characters
    */
   type: BitwiseOptionType;
+  /**
+   * Only used for ASCII strings - length in characters
+   */
+  length?: number;
 }
 
-export type BitwiseOptionType = 'bool' | 'uint' | 'sint';
-export type BitwiseOptionValue = boolean | bigint;
-
-// ToDo:
-// - support ASCII
+export type BitwiseOptionType = 'bool' | 'uint' | 'sint' | 'ascii';
+export type BitwiseOptionValue = boolean | bigint | string;
 
 type InternalOption = {
   value: BitwiseOptionValue | undefined;

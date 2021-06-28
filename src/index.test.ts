@@ -213,6 +213,13 @@ describe('BitwiseOptions', () => {
     });
   });
 
+  describe('ASCII', () => {
+    it.todo('sets fixed length strings');
+    it.todo('reads fixed length strings');
+    it.todo('throws on non-ASCII characters');
+    it.todo('throws on trying to use string as a non-ascii value');
+  });
+
   describe('API typing and exceptions', () => {
     it('requires all option parameters', () => {
       expect(() => {
