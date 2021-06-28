@@ -1,13 +1,13 @@
-import BitwiseOptions from './index';
+import Magipack from './index';
 
 const ERROR_REGEX = /^BitwiseOption/;
 
-describe('BitwiseOptions', () => {
+describe('Magipack', () => {
   describe('single bit options', () => {
-    let bo: BitwiseOptions;
+    let magipack: Magipack;
 
     beforeEach(() => {
-      bo = new BitwiseOptions([
+      magipack = new Magipack([
         {name: 'first', size: 1, type: 'bool'},
         {name: 'second', size: 1, type: 'bool'},
         {name: 'third', size: 1, type: 'bool'},
@@ -16,52 +16,52 @@ describe('BitwiseOptions', () => {
     });
 
     it('reads single bit options', () => {
-      bo.read(BigInt(13));
-      expect(bo.get('first')).toBe(true);
-      expect(bo.get('second')).toBe(false);
-      expect(bo.get('third')).toBe(true);
-      expect(bo.get('fourth')).toBe(true);
+      magipack.read(BigInt(13));
+      expect(magipack.get('first')).toBe(true);
+      expect(magipack.get('second')).toBe(false);
+      expect(magipack.get('third')).toBe(true);
+      expect(magipack.get('fourth')).toBe(true);
     });
 
     it('throws without input at all', () => {
-      expect(() => bo.get('first')).toThrowError(ERROR_REGEX);
+      expect(() => magipack.get('first')).toThrowError(ERROR_REGEX);
     });
 
     it('sets default values on 0 input', () => {
-      bo.read(BigInt(0));
-      expect(bo.get('first')).toBe(false);
-      expect(bo.get('second')).toBe(false);
-      expect(bo.get('third')).toBe(false);
-      expect(bo.get('fourth')).toBe(false);
+      magipack.read(BigInt(0));
+      expect(magipack.get('first')).toBe(false);
+      expect(magipack.get('second')).toBe(false);
+      expect(magipack.get('third')).toBe(false);
+      expect(magipack.get('fourth')).toBe(false);
     });
 
     it('ignores unknown options in input', () => {
-      bo.read(BigInt(16));
-      expect(bo.get('first')).toBe(false);
-      expect(bo.get('second')).toBe(false);
-      expect(bo.get('third')).toBe(false);
-      expect(bo.get('fourth')).toBe(false);
+      magipack.read(BigInt(16));
+      expect(magipack.get('first')).toBe(false);
+      expect(magipack.get('second')).toBe(false);
+      expect(magipack.get('third')).toBe(false);
+      expect(magipack.get('fourth')).toBe(false);
     });
 
     it('sets single options correctly', () => {
-      bo.set('first', true);
-      bo.set('third', true);
-      bo.set('fourth', true);
-      expect(bo.toNumber()).toBe(BigInt(13));
+      magipack.set('first', true);
+      magipack.set('third', true);
+      magipack.set('fourth', true);
+      expect(magipack.toNumber()).toBe(BigInt(13));
     });
 
     it('throws on getting/setting unknown option', () => {
-      bo.read(BigInt(3));
-      expect(() => bo.get('fifth')).toThrowError(ERROR_REGEX);
-      expect(() => bo.set('fifth', true)).toThrowError(ERROR_REGEX);
+      magipack.read(BigInt(3));
+      expect(() => magipack.get('fifth')).toThrowError(ERROR_REGEX);
+      expect(() => magipack.set('fifth', true)).toThrowError(ERROR_REGEX);
     });
   });
 
   describe('multi-bit options', () => {
-    let bo: BitwiseOptions;
+    let bo: Magipack;
 
     beforeEach(() => {
-      bo = new BitwiseOptions([
+      bo = new Magipack([
         {name: 'first_2bit', size: 2, type: 'uint'},
         {name: 'second_bool', size: 1, type: 'bool'},
         {name: 'third_5bit', size: 5, type: 'uint'},
@@ -78,7 +78,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('reads single-bit as a number', () => {
-      const bo = new BitwiseOptions([
+      const bo = new Magipack([
         {name: 'first', type: 'bool', size: 1},
         {name: 'second', type: 'uint', size: 1},
         {name: 'third', type: 'uint', size: 1},
@@ -122,7 +122,7 @@ describe('BitwiseOptions', () => {
 
   describe('BigInt', () => {
     it('reads a 129-bit bigint into a 64- and 65-bit bigints', () => {
-      const bo = new BitwiseOptions([
+      const bo = new Magipack([
         {name: '64_bit', size: 64, type: 'uint'},
         {name: '65_bit', size: 65, type: 'uint'}
       ]);
@@ -132,7 +132,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('reads a 129 big int into 4 x 32 bit & 1 bit', () => {
-      const bo = new BitwiseOptions([
+      const bo = new Magipack([
         {name: 'first', size: 32, type: 'uint'},
         {name: 'second', size: 1, type: 'uint'},
         {name: 'third', size: 32, type: 'uint'},
@@ -148,7 +148,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('sets 5 × 25 bit int values correctly', () => {
-      const bo = new BitwiseOptions([
+      const bo = new Magipack([
         {name: 'first', size: 25, type: 'uint'},
         {name: 'second', size: 25, type: 'uint'},
         {name: 'third', size: 25, type: 'uint'},
@@ -160,7 +160,7 @@ describe('BitwiseOptions', () => {
     });
 
     it('returns correct bigint string', () => {
-      const bo = new BitwiseOptions([
+      const bo = new Magipack([
         {name: 'first', size: 129, type: 'uint'},
       ]);
       bo.read(BigInt('481966290129121909553755495609654715551'));
@@ -169,10 +169,10 @@ describe('BitwiseOptions', () => {
   });
 
   describe('signed integers', () => {
-    let bo: BitwiseOptions;
+    let bo: Magipack;
 
     beforeEach(() => {
-      bo = new BitwiseOptions([
+      bo = new Magipack([
         {name: 'first', size: 4, type: 'sint'},
       ])
     });
@@ -197,7 +197,7 @@ describe('BitwiseOptions', () => {
 
     it('throws on a single bit signed', () => {
       expect(() => {
-        new BitwiseOptions([
+        new Magipack([
           {name: 'wrong', size: 1, type: 'sint'}
         ]);
       }).toThrowError(ERROR_REGEX);
@@ -217,19 +217,19 @@ describe('BitwiseOptions', () => {
     it('requires all option parameters', () => {
       expect(() => {
         // @ts-expect-error
-        new BitwiseOptions([{}]);
+        new Magipack([{}]);
       }).toThrowError(ERROR_REGEX);
       expect(() => {
         // @ts-expect-error
-        new BitwiseOptions([{name: 'default'}]);
+        new Magipack([{name: 'default'}]);
       }).toThrowError(ERROR_REGEX);
       expect(() => {
         // @ts-expect-error
-        new BitwiseOptions([{name: 'default', size: 2}]);
+        new Magipack([{name: 'default', size: 2}]);
       }).toThrowError(ERROR_REGEX);
       expect(() => {
         // @ts-expect-error
-        new BitwiseOptions([{name: 'default', type: 'uint'}]);
+        new Magipack([{name: 'default', type: 'uint'}]);
       }).toThrowError(ERROR_REGEX);
     });
   });

@@ -1,4 +1,4 @@
-export interface BitwiseOption {
+export interface MagipackOption {
   /**
    * Name of the options used in all methods
    */
@@ -13,27 +13,27 @@ export interface BitwiseOption {
    *  'uint' for unsigned ints
    *  'sint' for signed ints
    */
-  type: BitwiseOptionType;
+  type: MagipackOptionType;
 }
 
-export type BitwiseOptionType = 'bool' | 'uint' | 'sint';
-export type BitwiseOptionValue = boolean | bigint;
+export type MagipackOptionType = 'bool' | 'uint' | 'sint';
 
 // ToDo:
 // - support ASCII
 
+type MagipackInternalValue = boolean | bigint;
 type InternalOption = {
-  value: BitwiseOptionValue | undefined;
-  options: BitwiseOption;
+  value: MagipackInternalValue | undefined;
+  options: MagipackOption;
 };
 
-export default class BitwiseOptions {
-  supported: BitwiseOption[];
+export default class Magipack {
+  supported: MagipackOption[];
   options: Record<string, InternalOption> = {};
 
-  constructor(options: BitwiseOption[]) {
+  constructor(options: MagipackOption[]) {
     this.supported = options.map(inputOpt => {
-      const result: BitwiseOption = {
+      const result: MagipackOption = {
         name: inputOpt.name,
         size: inputOpt.size,
         type: this._getOptionType(inputOpt),
@@ -79,21 +79,21 @@ export default class BitwiseOptions {
     return this.toNumber().toString();
   }
 
-  get(name: string): BitwiseOptionValue {
+  get(name: string): MagipackInternalValue {
     this._throwOnUnsupportedOption(name);
     this._throwOnNoValue(name);
 
-    return this.options[name].value as BitwiseOptionValue;
+    return this.options[name].value as MagipackInternalValue;
   }
 
-  set(name: string, value: BitwiseOptionValue): void {
+  set(name: string, value: MagipackInternalValue): void {
     this._throwOnUnsupportedOption(name);
     this._throwOnTypeMismatch(name, value);
 
     this.options[name].value = value;
   }
 
-  _readOptionValue(option: BitwiseOption, value: bigint): BitwiseOptionValue {
+  _readOptionValue(option: MagipackOption, value: bigint): MagipackInternalValue {
     if (option.type === 'bool') {
       return Boolean(value);
     }
@@ -104,7 +104,7 @@ export default class BitwiseOptions {
     return this._readSignedValue(option, value);
   }
 
-  _readSignedValue(option: BitwiseOption, value: bigint): bigint {
+  _readSignedValue(option: MagipackOption, value: bigint): bigint {
     const significantBits = BigInt(option.size - 1);
 
     const signMask = BigInt(1) << (significantBits);
@@ -145,7 +145,7 @@ export default class BitwiseOptions {
     }
   }
 
-  _throwOnTypeMismatch(name: string, value: BitwiseOptionValue) {
+  _throwOnTypeMismatch(name: string, value: MagipackInternalValue) {
     const {type, size} = this.options[name].options;
 
     if (typeof value === 'bigint') {
@@ -188,7 +188,7 @@ export default class BitwiseOptions {
     return this.supported.findIndex(opt => name === opt.name) !== -1;
   }
 
-  _getOptionType(option: BitwiseOption): BitwiseOptionType {
+  _getOptionType(option: MagipackOption): MagipackOptionType {
     const {name, size, type} = option;
 
     if (!name || !size || !type) {

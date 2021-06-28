@@ -1,6 +1,6 @@
 {
-  "name": "bitwise-options",
-  "version": "0.7.0",
+  "name": "magipack",
+  "version": "0.9.0",
   "description": "Value packing library",
   "main": "./dist/index.js",
   "scripts": {
@@ -14,8 +14,9 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["binary", "bitwise", "value packing", "bigint"],
+  "author": "Oleg Gromov <oleg@gromov.com>",
+  "homepage": "https://github.com/oleggromov/magipack",
   "license": "MIT",
   "types": "./dist/index.d.ts",
   "devDependencies": {
