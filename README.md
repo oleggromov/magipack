@@ -15,11 +15,6 @@ or
 
 `yarn install magipack`
 
-### Runtime requirements
-Library depends on `BigInt` and `**` (exponentiation) operator support.
-
-If you're using Babel or any other code transpilation, you may want to disable it for the lib, which won't work with BigInt-s if `**` is transpiled to `Math.pow` calls.
-
 ## Supported values
 
 - Booleans: `type: 'bool', size: 1`

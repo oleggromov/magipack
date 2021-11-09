@@ -51,7 +51,7 @@ export default class Magipack {
   read(input: bigint): void {
     let bit = BigInt(0);
     for (const option of this.supported) {
-      const mask = (BigInt(2) ** BigInt(option.size) - BigInt(1)) << bit;
+      const mask = (powPositive(BigInt(2), BigInt(option.size)) - BigInt(1)) << bit;
       const value = (input & mask) >> bit;
 
       this.options[option.name] = {
@@ -108,7 +108,7 @@ export default class Magipack {
     const significantBits = BigInt(option.size - 1);
 
     const signMask = BigInt(1) << (significantBits);
-    const valueMask = BigInt(2) ** (significantBits) - BigInt(1);
+    const valueMask = powPositive(BigInt(2), significantBits) - BigInt(1);
 
     const isNegative = Boolean((value & signMask) >> significantBits);
     const maskedValue = value & valueMask;
@@ -134,7 +134,7 @@ export default class Magipack {
     const absoluteValue = value < 0 ? value * BigInt(-1) : value;
 
     const signMask = (signBit << significantBits);
-    const valueMask = BigInt(2) ** significantBits - BigInt(1);
+    const valueMask = powPositive(BigInt(2), significantBits) - BigInt(1);
 
     return signMask | (absoluteValue & valueMask);
   }
@@ -161,7 +161,7 @@ export default class Magipack {
     }
 
     if (type === 'uint') {
-      const maxValue = BigInt(2) ** BigInt(size) - BigInt(1);
+      const maxValue = powPositive(BigInt(2), BigInt(size)) - BigInt(1);
       if (value > maxValue) {
         throw error(`number ${value} is too big for a ${size}-bit unsigned int`);
       }
@@ -171,7 +171,7 @@ export default class Magipack {
     }
 
     if (type === 'sint') {
-      const maxValue = BigInt(2) ** BigInt(size - 1) - BigInt(1);
+      const maxValue = powPositive(BigInt(2), BigInt(size - 1)) - BigInt(1);
       if (value > maxValue || value < -maxValue) {
         throw error(`number ${value} has too many significant bits for a ${size}-bit signed integer`);
       }
@@ -212,4 +212,16 @@ export default class Magipack {
 
 function error(msg: string) {
   return new Error(`BitwiseOptions: ${msg}`);
+}
+
+function powPositive(base: bigint, power: bigint) {
+  if (power < 1) {
+    throw new Error('power < 1 is not supported');
+  }
+
+  let result = base;
+  for (let i = BigInt(1); i < power; i++) {
+    result = result * base;
+  }
+  return result;
 }
