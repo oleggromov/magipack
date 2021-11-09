@@ -1,6 +1,6 @@
 {
   "name": "magipack",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Value packing library",
   "main": "./dist/index.js",
   "scripts": {
@@ -14,7 +14,12 @@
   "publishConfig": {
     "access": "public"
   },
-  "keywords": ["binary", "bitwise", "value packing", "bigint"],
+  "keywords": [
+    "binary",
+    "bitwise",
+    "value packing",
+    "bigint"
+  ],
   "author": "Oleg Gromov <oleg@gromov.com>",
   "homepage": "https://github.com/oleggromov/magipack",
   "license": "MIT",
