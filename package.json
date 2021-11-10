@@ -4,6 +4,7 @@
   "description": "Value packing library",
   "main": "./dist/index.js",
   "scripts": {
+    "prepare": "npm run build",
     "build": "tsc --build",
     "test": "jest",
     "test:watch": "jest --watch"
@@ -11,7 +12,6 @@
   "files": [
     "dist"
   ],
-  "prepare": "npm run build",
   "publishConfig": {
     "access": "public"
   },
