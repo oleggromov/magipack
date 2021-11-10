@@ -1,6 +1,6 @@
 {
   "name": "magipack",
-  "version": "0.11.0",
+  "version": "0.11.1",
   "description": "Value packing library",
   "main": "./dist/index.js",
   "scripts": {
