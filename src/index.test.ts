@@ -1,6 +1,6 @@
 import Magipack from './index';
 
-const ERROR_REGEX = /^BitwiseOption/;
+const ERROR_REGEX = /^Magipack/;
 
 describe('Magipack', () => {
   describe('single bit options', () => {
@@ -209,6 +209,59 @@ describe('Magipack', () => {
       }).toThrowError(ERROR_REGEX);
       expect(() => {
         magipack.set('first', BigInt(8));
+      }).toThrowError(ERROR_REGEX);
+    });
+  });
+
+  describe('getAll/setAll', () => {
+    let magipack: Magipack;
+
+    beforeEach(() => {
+      magipack = new Magipack([
+        {name: 'first', size: 4, type: 'uint'},
+        {name: 'second', size: 4, type: 'uint'},
+      ])
+    });
+
+    it('sets all values at once', () => {
+      magipack.setAll({
+        first: BigInt(3),
+        second: BigInt(2),
+      });
+      expect(magipack.get('first')).toBe(BigInt(3));
+      expect(magipack.get('second')).toBe(BigInt(2));
+    });
+
+    it('throws on incomplete/extra input for setAll', () => {
+      expect(() => {
+        magipack.setAll({
+          first: BigInt(3),
+        });
+      }).toThrowError(ERROR_REGEX);
+      expect(() => {
+        magipack.setAll({
+          first: BigInt(3),
+          second: BigInt(4),
+          third: BigInt(5),
+        });
+      }).toThrowError(ERROR_REGEX);
+    });
+
+    it('returns all values at once', () => {
+      magipack.setAll({
+        first: BigInt(8),
+        second: BigInt(12),
+      });
+      expect(magipack.getAll()).toEqual({
+        first: BigInt(8),
+        second: BigInt(12),
+      });
+    });
+
+    it('throws when undefined options are found for getAll', () => {
+      magipack.set('first', BigInt(3));
+      expect(() => {
+        magipack.getAll();
       }).toThrowError(ERROR_REGEX);
     });
   });

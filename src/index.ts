@@ -18,7 +18,10 @@ export interface MagipackOption {
 
 export type MagipackOptionType = 'bool' | 'uint' | 'sint';
 
+export type MagipackOptionMap = Record<string, MagipackInternalValue>;
+
 // ToDo:
+// - stronger typing
 // - support ASCII
 
 type MagipackInternalValue = boolean | bigint;
@@ -36,7 +39,7 @@ export default class Magipack {
       const result: MagipackOption = {
         name: inputOpt.name,
         size: inputOpt.size,
-        type: this._getOptionType(inputOpt),
+        type: this.getOptionType(inputOpt),
       };
 
       this.options[inputOpt.name] = {
@@ -55,7 +58,7 @@ export default class Magipack {
       const value = (input & mask) >> bit;
 
       this.options[option.name] = {
-        value: this._readOptionValue(option, value),
+        value: this.readOptionValue(option, value),
         options: option,
       };
 
@@ -68,7 +71,7 @@ export default class Magipack {
     let bit = BigInt(0);
 
     for (const option of this.supported) {
-      result |= this._writeOptionValue(this.options[option.name]) << bit;
+      result |= this.writeOptionValue(this.options[option.name]) << bit;
       bit += BigInt(option.size);
     }
 
@@ -80,20 +83,39 @@ export default class Magipack {
   }
 
   get(name: string): MagipackInternalValue {
-    this._throwOnUnsupportedOption(name);
-    this._throwOnNoValue(name);
+    this.throwOnUnsupportedOption(name);
+    this.throwOnNoValue(name);
 
     return this.options[name].value as MagipackInternalValue;
   }
 
+  getAll(): MagipackOptionMap {
+    const result: MagipackOptionMap = {}
+    Object.keys(this.options).forEach((key) => {
+      result[key] = this.get(key);
+    });
+    return result;
+  }
+
   set(name: string, value: MagipackInternalValue): void {
-    this._throwOnUnsupportedOption(name);
-    this._throwOnTypeMismatch(name, value);
+    this.throwOnUnsupportedOption(name);
+    this.throwOnTypeMismatch(name, value);
 
     this.options[name].value = value;
   }
 
-  _readOptionValue(option: MagipackOption, value: bigint): MagipackInternalValue {
+  setAll(values: MagipackOptionMap): void {
+    const remaining = new Set(Object.keys(this.options));
+    Object.entries(values).forEach(([key, value]) => {
+      this.set(key, value);
+      remaining.delete(key);
+    });
+    if (remaining.size) {
+      throw error(`setAll missing keys - ${[...remaining.keys()].toString()}`);
+    }
+  }
+
+  private readOptionValue(option: MagipackOption, value: bigint): MagipackInternalValue {
     if (option.type === 'bool') {
       return Boolean(value);
     }
@@ -101,10 +123,10 @@ export default class Magipack {
       return value;
     }
 
-    return this._readSignedValue(option, value);
+    return this.readSignedValue(option, value);
   }
 
-  _readSignedValue(option: MagipackOption, value: bigint): bigint {
+  private readSignedValue(option: MagipackOption, value: bigint): bigint {
     const significantBits = BigInt(option.size - 1);
 
     const signMask = BigInt(1) << (significantBits);
@@ -116,7 +138,7 @@ export default class Magipack {
     return isNegative ? -maskedValue : maskedValue;
   }
 
-  _writeOptionValue(option: InternalOption): bigint {
+  private writeOptionValue(option: InternalOption): bigint {
     const {type, size} = option.options;
     const value = BigInt(option.value ?? 0);
 
@@ -124,10 +146,10 @@ export default class Magipack {
       return BigInt(value);
     }
 
-    return this._writeSignedValue(value, size);
+    return this.writeSignedValue(value, size);
   }
 
-  _writeSignedValue(value: bigint, size: number): bigint {
+  private writeSignedValue(value: bigint, size: number): bigint {
     const significantBits = BigInt(size - 1);
 
     const signBit = value < 0 ? BigInt(1) : BigInt(0);
@@ -139,13 +161,13 @@ export default class Magipack {
     return signMask | (absoluteValue & valueMask);
   }
 
-  _throwOnUnsupportedOption(name: string) {
-    if (!this._isOptionSupported(name)) {
+  private throwOnUnsupportedOption(name: string) {
+    if (!this.isOptionSupported(name)) {
       throw error(`unsupported option "${name}"`);
     }
   }
 
-  _throwOnTypeMismatch(name: string, value: MagipackInternalValue) {
+  private throwOnTypeMismatch(name: string, value: MagipackInternalValue) {
     const {type, size} = this.options[name].options;
 
     if (typeof value === 'bigint') {
@@ -178,17 +200,17 @@ export default class Magipack {
     }
   }
 
-  _throwOnNoValue(name: string) {
+  private throwOnNoValue(name: string) {
     if (typeof this.options[name].value === 'undefined') {
       throw error(`option "${name}" value is unset`);
     }
   }
 
-  _isOptionSupported(name: string) {
+  private isOptionSupported(name: string) {
     return this.supported.findIndex(opt => name === opt.name) !== -1;
   }
 
-  _getOptionType(option: MagipackOption): MagipackOptionType {
+  private getOptionType(option: MagipackOption): MagipackOptionType {
     const {name, size, type} = option;
 
     if (!name || !size || !type) {
@@ -211,7 +233,7 @@ export default class Magipack {
 }
 
 function error(msg: string) {
-  return new Error(`BitwiseOptions: ${msg}`);
+  return new Error(`Magipack: ${msg}`);
 }
 
 function powPositive(base: bigint, power: bigint) {
